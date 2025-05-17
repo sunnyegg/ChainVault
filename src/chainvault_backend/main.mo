@@ -1,5 +1,13 @@
-actor {
-  public query func greet(name : Text) : async Text {
-    return "Hello, " # name # "!";
+import Array "mo:base/Array";
+
+actor Storage {
+  stable var store : [Text] = [];
+
+  public func add(item : Text) : async () {
+    store := Array.append(store, [item]);
   };
-};
+
+  public func getAll() : async [Text] {
+    return store;
+  };
+}
