@@ -30,12 +30,15 @@ export default defineConfig({
     environment("all", { prefix: "CANISTER_" }),
     environment("all", { prefix: "DFX_" }),
   ],
+  css: {
+    postcss: './postcss.config.js',
+  },
   resolve: {
     alias: [
       {
         find: "declarations",
         replacement: fileURLToPath(
-          new URL("../declarations", import.meta.url)
+          new URL("../declarations", import.meta.url),
         ),
       },
     ],

@@ -1,48 +1,16 @@
-import { useEffect, useState } from "react";
-import { chainvault_backend } from "declarations/chainvault_backend";
-import { aes_gcm_encrypt, aes_gcm_decrypt } from "crypto-aes-gcm";
-import { decrypt, encrypt } from "../lib/crypto";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { TeamProfile } from "./containers/team-profile";
+import { ChainVault } from "./containers/chain-vault";
 
-function App() {
-  const [data, setData] = useState(null);
-  const [password, setPassword] = useState(null);
-
-  const message = "i will never let you go";
-
-  useEffect(() => {
-    const fetchPassword = async () => {
-      try {
-        const password = await chainvault_backend.generateSeed();
-        setPassword(password);
-      } catch (error) {
-        console.error("Error fetching password:", error);
-      }
-    };
-
-    fetchPassword();
-  }, []);
-
-  useEffect(() => {
-    if (!password) {
-      return;
-    }
-
-    encrypt(message, password)
-      .then(async (encrypted) => {
-        console.log("Encrypted message:", encrypted);
-        console.log("Decrypted message:", await decrypt(encrypted, password));
-        setData(encrypted);
-      })
-      .catch((error) => {
-        console.error("Error encrypting message:", error);
-      });
-  }, [password]);
-
+export default function App() {
   return (
-    <main>
-      <section>{JSON.stringify(data)}</section>
-    </main>
+    <Router>
+      <main>
+        <Routes>
+          <Route path="/" element={<TeamProfile />} />
+          <Route path="/app" element={<ChainVault />} />
+        </Routes>
+      </main>
+    </Router>
   );
 }
-
-export default App;
