@@ -24,8 +24,8 @@ export const TypeWriter = ({
   const [loopNum, setLoopNum] = useState(0);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    
+    let timeout: ReturnType<typeof setTimeout>;
+
     const tick = () => {
       const i = loopNum % texts.length;
       const fullText = texts[i];
@@ -41,7 +41,7 @@ export const TypeWriter = ({
       if (!isDeleting && text === fullText) {
         delta = delayBetweenTexts;
         setIsDeleting(true);
-      } else if (isDeleting && text === '') {
+      } else if (isDeleting && text === "") {
         setIsDeleting(false);
         setLoopNum(loopNum + 1);
       }
@@ -52,7 +52,15 @@ export const TypeWriter = ({
     timeout = setTimeout(tick, 100);
 
     return () => clearTimeout(timeout);
-  }, [text, isDeleting, loopNum, texts, typingSpeed, deletingSpeed, delayBetweenTexts]);
+  }, [
+    text,
+    isDeleting,
+    loopNum,
+    texts,
+    typingSpeed,
+    deletingSpeed,
+    delayBetweenTexts,
+  ]);
 
   return (
     <span className={`relative ${className}`}>
