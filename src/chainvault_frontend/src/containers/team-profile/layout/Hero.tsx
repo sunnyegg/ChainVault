@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button, Icon } from "@tixia/design-system";
+import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
@@ -32,16 +32,16 @@ export const Hero = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <Button
+          <button
             onClick={() => navigate("/app")}
-            variant="primary"
+            // variant="primary"
             className="bg-[#FCD535] text-black font-semibold px-6 py-3 hover:bg-yellow-400 transition-all rounded-full"
           >
             <div className="flex items-center gap-2">
               <Icon icon="fxemoji:rocket" />
               Launch App
             </div>
-          </Button>
+          </button>
         </motion.div>
       </div>
     </section>

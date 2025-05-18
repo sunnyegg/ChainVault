@@ -1,4 +1,5 @@
-import { Icon, Button } from '@tixia/design-system';
+// import { Icon, Button } from '@tixia/design-system';
+import { Icon } from "@iconify/react";
 import { motion } from 'framer-motion';
 import { useNavigate } from "react-router-dom";
 
@@ -17,7 +18,7 @@ export const TryItOut = () => {
           Dive into the live app and explore what we’ve built. Test it. Break it. Shape the future with us.
         </p>
 
-        <Button
+        <button
           className="bg-black text-[#FCD535] font-semibold px-6 py-3 rounded-full hover:bg-[#181A20] transition-all"
           onClick={() => navigate("/app")}
         >
@@ -25,7 +26,7 @@ export const TryItOut = () => {
             <Icon icon="fxemoji:rocket" />
             Launch App
           </div>
-        </Button>
+        </button>
       </motion.div>
     </div>
   );
