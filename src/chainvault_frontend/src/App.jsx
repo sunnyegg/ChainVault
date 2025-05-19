@@ -4,13 +4,11 @@ import { ChainVault } from "./containers/chain-vault";
 
 export default function App() {
   return (
-    <Router>
-      <main>
+      <Router>
         <Routes>
           <Route path="/" element={<TeamProfile />} />
           <Route path="/app" element={<ChainVault />} />
         </Routes>
-      </main>
-    </Router>
+      </Router>
   );
 }
