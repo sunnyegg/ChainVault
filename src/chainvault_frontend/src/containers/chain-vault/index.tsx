@@ -6,6 +6,7 @@ import {
   generateRandomKey,
   encodeBase64,
   decodeBase64,
+  hash256,
 } from "../../lib/crypto";
 
 export function ChainVault() {
@@ -46,12 +47,17 @@ export function ChainVault() {
         const base64Content = encodeBase64(fileContent as string);
         console.log("File content:", base64Content);
 
+        const hashedRandomKey = await hash256(key);
+
         // Encrypt the file content
-        const encryptedContent = await encrypt(base64Content, key);
+        const encryptedContent = await encrypt(base64Content, hashedRandomKey);
         console.log("Encrypted content:", encryptedContent);
 
         // Send the encrypted content to the backend
-        const response = await chainvault_backend.add(key, encryptedContent);
+        const response = await chainvault_backend.add(
+          hashedRandomKey,
+          encryptedContent
+        );
         console.log("Response from backend:", response);
       } else {
         console.error("Failed to read file content");
@@ -72,8 +78,10 @@ export function ChainVault() {
     }
 
     try {
+      const hashedDownloadKey = await hash256(downloadKey);
+
       // Fetch the encrypted content from the backend using the provided key
-      const encryptedContent = await chainvault_backend.get(downloadKey);
+      const encryptedContent = await chainvault_backend.get(hashedDownloadKey);
       if (!encryptedContent.length) {
         console.error("No content found for the provided key");
         return;
@@ -81,7 +89,10 @@ export function ChainVault() {
       console.log("Encrypted content from backend:", encryptedContent[0]);
 
       // Decrypt the content
-      const decryptedContent = await decrypt(encryptedContent[0], downloadKey);
+      const decryptedContent = await decrypt(
+        encryptedContent[0],
+        hashedDownloadKey
+      );
       console.log("Decrypted content:", decryptedContent);
 
       // Decrypted content is in base64, convert it back to arraybuffer
