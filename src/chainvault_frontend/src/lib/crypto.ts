@@ -33,7 +33,7 @@ export const decodeBase64 = (data: string) => {
   for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
-  return new TextDecoder().decode(bytes);
+  return bytes;
 };
 
 export const hash256 = async (data: string) => {

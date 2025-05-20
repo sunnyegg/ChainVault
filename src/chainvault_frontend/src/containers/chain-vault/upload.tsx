@@ -4,7 +4,6 @@ import {
   decrypt,
   encrypt,
   generateRandomKey,
-  encodeBase64,
   decodeBase64,
   hash256,
 } from "../../lib/crypto";
@@ -39,35 +38,36 @@ export function Upload() {
       return;
     }
 
-    // TODO: Need a better way to handle file reading
     const reader = new FileReader();
     reader.onload = async (event) => {
-      const fileContent = event.target?.result;
-      if (fileContent) {
-        // Convert file to base64
-        const base64Content = encodeBase64(fileContent as string);
-        console.log("File content:", base64Content);
+      try {
+        const fileContent = event.target?.result;
+        if (fileContent) {
+          // Get the base64 string
+          const base64String = (fileContent as string).split(",")[1];
 
-        const hashedRandomKey = await hash256(key);
+          const hashedRandomKey = await hash256(key);
 
-        // Encrypt the file content
-        const encryptedContent = await encrypt(base64Content, hashedRandomKey);
-        console.log("Encrypted content:", encryptedContent);
+          // Encrypt the file content
+          const encryptedContent = await encrypt(base64String, hashedRandomKey);
 
-        // Send the encrypted content to the backend
-        const response = await chainvault_backend.add(
-          hashedRandomKey,
-          encryptedContent
-        );
-        console.log("Response from backend:", response);
-      } else {
-        console.error("Failed to read file content");
+          // Send the encrypted content to the backend
+          const response = await chainvault_backend.add(
+            hashedRandomKey,
+            encryptedContent
+          );
+          console.log("Response from backend:", response);
+        } else {
+          console.error("Failed to read file content");
+        }
+      } catch (error) {
+        console.error("Error during encryption:", error);
       }
     };
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
     };
-    reader.readAsText(file);
+    reader.readAsDataURL(file);
   };
 
   const handleDownload = async (e: any) => {
@@ -87,37 +87,27 @@ export function Upload() {
         console.error("No content found for the provided key");
         return;
       }
-      console.log("Encrypted content from backend:", encryptedContent[0]);
 
       // Decrypt the content
       const decryptedContent = await decrypt(
         encryptedContent[0],
         hashedDownloadKey
       );
-      console.log("Decrypted content:", decryptedContent);
 
-      // Decrypted content is in base64, convert it back to arraybuffer
-      const decodedContent = decodeBase64(decryptedContent);
-      console.log("Decoded content:", decodedContent);
-
-      // Convert the decoded content to a Blob and create a download link
-      const bytes = new Uint8Array(decodedContent.length);
-      for (let i = 0; i < decodedContent.length; i++) {
-        bytes[i] = decodedContent.charCodeAt(i);
-      }
-
-      // Create a Blob and download it
-      // Note: You might want to set the correct MIME type based on the file type
-      // For example, if you know the file type, you can set it here
-      const blob = new Blob([bytes], { type: "application/x-bittorrent" });
+      // Decrypted content is the base64 string
+      // Convert base64 string back to binary
+      const bytes = decodeBase64(decryptedContent);
+      const blob = new Blob([bytes], { type: "application/octet-stream" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = "downloaded_file"; // You can set a default filename here
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0); // Clean up the URL object
     } catch (err) {
       console.error("Error during download:", err);
     }
@@ -150,11 +140,7 @@ export function Upload() {
         </div>
 
         <Card className="flex gap-2 items-center">
-          <Input
-            type="file"
-            variant="ghost"
-            onChange={handleFileChange}
-          />
+          <Input type="file" variant="ghost" onChange={handleFileChange} />
           <Button type="submit" onClick={handleSubmit} variant="primary">
             Save
           </Button>
@@ -177,4 +163,3 @@ export function Upload() {
     </Card>
   );
 }
-
