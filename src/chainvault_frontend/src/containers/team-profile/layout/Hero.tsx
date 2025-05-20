@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@tixia/design-system";
 
 export const Hero = () => {
   const navigate = useNavigate();
@@ -23,8 +23,9 @@ export const Hero = () => {
           transition={{ duration: 1, delay: 0.3 }}
           className="text-lg md:text-xl text-[#848E9C] mb-8"
         >
-          <b className="text-[#FCD535]">ChainVault</b> is a blockchain-powered storage system built on the
-          Internet Computer — offering secure, decentralized file storage with optional AI-generated summaries.
+          <b className="text-[#FCD535]">ChainVault</b> is a blockchain-powered
+          storage system built on the Internet Computer — offering secure,
+          decentralized file storage with optional AI-generated summaries.
         </motion.p>
 
         <motion.div
@@ -32,16 +33,13 @@ export const Hero = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <button
-            onClick={() => navigate("/app")}
-            // variant="primary"
+          <Button
+            onClick={() => navigate("/login")}
+            leftIcon="fxemoji:rocket"
             className="bg-[#FCD535] text-black font-semibold px-6 py-3 hover:bg-yellow-400 transition-all rounded-full"
           >
-            <div className="flex items-center gap-2">
-              <Icon icon="fxemoji:rocket" />
-              Launch App
-            </div>
-          </button>
+            Launch App
+          </Button>
         </motion.div>
       </div>
     </section>

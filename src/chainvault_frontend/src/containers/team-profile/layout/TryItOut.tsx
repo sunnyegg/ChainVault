@@ -1,6 +1,5 @@
-// import { Icon, Button } from '@tixia/design-system';
-import { Icon } from "@iconify/react";
-import { motion } from 'framer-motion';
+import { Button, Icon } from "@tixia/design-system";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 export const TryItOut = () => {
@@ -13,20 +12,21 @@ export const TryItOut = () => {
         transition={{ duration: 0.6 }}
         className="text-center max-w-xl"
       >
-        <h2 className="text-4xl md:text-5xl font-extrabold mb-6">Ready to try it out?</h2>
+        <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
+          Ready to try it out?
+        </h2>
         <p className="text-lg mb-8">
-          Dive into the live app and explore what we’ve built. Test it. Break it. Shape the future with us.
+          Dive into the live app and explore what we’ve built. Test it. Break
+          it. Shape the future with us.
         </p>
 
-        <button
+        <Button
+          leftIcon="fxemoji:rocket"
           className="bg-black text-[#FCD535] font-semibold px-6 py-3 rounded-full hover:bg-[#181A20] transition-all"
-          onClick={() => navigate("/app")}
+          onClick={() => navigate("/login")}
         >
-          <div className="flex items-center gap-2">
-            <Icon icon="fxemoji:rocket" />
-            Launch App
-          </div>
-        </button>
+          Launch App
+        </Button>
       </motion.div>
     </div>
   );

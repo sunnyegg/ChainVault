@@ -1,6 +1,7 @@
 import { Header } from "../../components/Header";
-import { Upload } from "./upload";
 import { Navbar } from "../../components/Navbar";
+// import { Upload } from "./upload";
+import { Files } from "./files";
 import { useState } from "react";
 import { Card } from "@tixia/design-system";
 
@@ -15,10 +16,11 @@ export function ChainVault() {
           expanded ? "ml-56" : "ml-16"
         }`}
       >
-        <Card variant="ghost">
-          <Upload />
+        <Card variant="ghost" className="flex flex-col gap-4 mx-auto w-fit">
+          <Files />
+          {/* <Upload /> */}
         </Card>
       </div>
     </div>
   );
-} 
+}

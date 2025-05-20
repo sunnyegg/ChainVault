@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Icon } from "@iconify/react";
+import { Icon, SelectItem } from "@tixia/design-system";
 import { Link } from "react-router-dom";
 
 const SCHEMA = [
@@ -28,18 +28,18 @@ export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpand
     >
       {/* Logo */}
       <div className="flex items-center justify-center h-16 w-full mb-4">
-        <Icon icon="twemoji:weary-cat" />
+        <Icon icon="twemoji:weary-cat" spin={expanded} />
       </div>
       <div className="flex flex-col gap-2 w-full flex-1">
         {SCHEMA.map((item) => (
           <Link to={item.href} key={item.label} className="w-full text-white">
-            <div
+            <SelectItem
+              value={item.label}
               className={`w-full px-4 py-3 text-lg rounded-none hover:bg-slate-800 transition-all duration-200 flex ${
                 expanded
                   ? "justify-start text-left"
                   : "justify-center text-center"
               }`}
-              // value={item.label}
             >
               <span className="flex items-center justify-center text-2xl w-8 h-8">
                 <Icon icon={item.icon} />
@@ -53,7 +53,7 @@ export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpand
               >
                 {item.label}
               </span>
-            </div>
+            </SelectItem>
           </Link>
         ))}
       </div>

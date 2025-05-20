@@ -124,7 +124,7 @@ export function Upload() {
   };
 
   return (
-    <Card className="flex flex-col gap-4" variant="ghost">
+    <Card className="flex flex-col gap-4 bg-white" variant="ghost">
       {/* Upload */}
       <Card className="w-fit flex flex-col gap-2" shadow="sm">
         <Text variant="h2">Upload</Text>
