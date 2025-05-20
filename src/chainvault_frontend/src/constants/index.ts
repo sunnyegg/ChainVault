@@ -10,6 +10,14 @@ export const TYPE_ICONS = {
   rar: "bi:file-earmark-zip",
 };
 
+interface DummyFile {
+  name: string;
+  type: keyof typeof TYPE_ICONS;
+  size: string;
+}
+
+// export const DUMMY_FILES: DummyFile[] = [];
+
 export const DUMMY_FILES = [
   {
     name: "Tesla model S",

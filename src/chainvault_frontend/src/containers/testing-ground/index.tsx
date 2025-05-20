@@ -1,10 +1,10 @@
 import { Header } from "../../components/Header";
 import { Navbar } from "../../components/Navbar";
-import { Files } from "./files";
+import { Upload } from "../chain-vault/upload";
 import { useState } from "react";
 import { Card } from "@tixia/design-system";
 
-export function ChainVault() {
+export function TestingGround() {
   const [expanded, setExpanded] = useState(false);
   return (
     <div>
@@ -16,7 +16,7 @@ export function ChainVault() {
         }`}
       >
         <Card variant="ghost" className="flex flex-col gap-4 mx-auto w-fit">
-          <Files />
+          <Upload />
         </Card>
       </div>
     </div>

@@ -3,7 +3,8 @@ import { Icon, SelectItem } from "@tixia/design-system";
 import { Link } from "react-router-dom";
 
 const SCHEMA = [
-  { label: "Dashboard", icon: "devicon:windows11", href: "/app" },
+  { label: "Vault", icon: "streamline:safe-vault-solid", href: "/app" },
+  { label: "Testing", icon: "solar:bug-bold-duotone", href: "/testing" },
 ];
 
 export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpanded: (expanded: boolean) => void }) => {
