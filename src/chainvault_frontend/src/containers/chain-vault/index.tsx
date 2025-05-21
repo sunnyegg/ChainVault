@@ -11,11 +11,11 @@ export function ChainVault() {
       <Header />
       <Navbar expanded={expanded} setExpanded={setExpanded} />
       <div
-        className={`mt-16 transition-all duration-200 ${
-          expanded ? "ml-56" : "ml-16"
+        className={`mt-16 transition-all duration-200 px-4 md:px-8 ${
+          expanded ? "md:ml-56" : "md:ml-16"
         }`}
       >
-        <Card variant="ghost" className="flex flex-col gap-4 mx-auto w-fit">
+        <Card variant="ghost" className="flex flex-col gap-4 mx-auto w-full max-w-7xl">
           <Files />
         </Card>
       </div>

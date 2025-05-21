@@ -7,6 +7,7 @@ import { Filter } from "./fragments/filter";
 import { ModalUploadSuccess } from "./modals/modal-upload-success";
 import { useFileHandler } from "./hooks/useFileHandler";
 import { useRef } from "react";
+import { motion } from "framer-motion";
 
 export const Files = () => {
   const {
@@ -18,11 +19,9 @@ export const Files = () => {
     openModal,
     setView,
     handleFileChange,
-    handleSubmit,
     handleDownload,
     uploadMutation,
     downloadMutation,
-    key,
     uploadKey,
   } = useFileHandler();
 
@@ -30,18 +29,28 @@ export const Files = () => {
 
   return (
     <>
-      <Filter
-        openModal={openModal}
-        view={view}
-        setView={setView}
-        handleFileChange={handleFileChange}
-        uploadMutation={uploadMutation}
-        handleSubmit={handleSubmit}
-        fileInputRef={fileInputRef}
-      />
-      {view === "list" ? (
-        <Card
-          className={`${
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Filter
+          openModal={openModal}
+          view={view}
+          setView={setView}
+          handleFileChange={handleFileChange}
+          uploadMutation={uploadMutation}
+          fileInputRef={fileInputRef}
+        />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.2, delay: 0.2 }}
+      >
+        {view === "list" ? (
+          <Card
+            className={`${
             DUMMY_FILES.length
               ? "grid gap-2"
               : "flex items-center justify-center"
@@ -68,7 +77,7 @@ export const Files = () => {
         <Card
           className={`${
             DUMMY_FILES.length
-              ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2"
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2"
               : "flex items-center justify-center"
           } bg-white min-h-[200px]`}
         >
@@ -89,10 +98,18 @@ export const Files = () => {
             />
           )}
         </Card>
-      )}
-      <Text variant="caption" className="text-center">
-        Powered by <span className="font-bold text-primary">ChainVault</span>
-      </Text>
+        )}
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, scale: 2 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="text-center"
+      >
+        <Text variant="caption" className="text-center">
+          Powered by <span className="font-bold text-primary">ChainVault</span>
+        </Text>
+      </motion.div>
       <ModalDownload
         isOpen={modalOpen === "action"}
         onClose={closeModal}

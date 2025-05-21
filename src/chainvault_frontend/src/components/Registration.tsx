@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@tixia/design-system";
 import { motion } from "framer-motion";
-export const Registration = () => {
+
+const useActions = () => {
   const [isLogin, setIsLogin] = useState(false);
   const [input, setInput] = useState({
     username: "",
@@ -20,13 +21,23 @@ export const Registration = () => {
       username: input.username,
       password: input.password,
     };
+    // replace with api call
     console.log(payload);
+    
+    // if success
     showToast({
       title: "Login successful",
       description: "You can now access your account",
       variant: "success",
     });
     navigate("/app");
+
+    // if error
+    // showToast({
+    //   title: "Login failed",
+    //   description: "Please try again",
+    //   variant: "error",
+    // });
   };
 
   const handleSignUp = () => {
@@ -36,7 +47,10 @@ export const Registration = () => {
       password: input.password,
       confirmPassword: input.confirmPassword,
     };
+    // replace with api call
     console.log(payload);
+
+    // if success
     showToast({
       title: "Sign up successful",
       description: "You can now login",
@@ -44,6 +58,13 @@ export const Registration = () => {
     });
     navigate("/login");
     setIsLogin(true);
+
+    // if error
+    // showToast({
+    //   title: "Sign up failed",
+    //   description: "Please try again",
+    //   variant: "error",
+    // });
   };
 
   const handleSubmit = () => {
@@ -62,9 +83,29 @@ export const Registration = () => {
     helperText: isLogin ? "Don't have an account?" : "Already have an account?",
   };
 
+  return {
+    isLogin,
+    input,
+    handleSubmit,
+    handleChange,
+    REGISTRATION_TEXT,
+    setIsLogin,
+  };
+};
+
+export const Registration = () => {
+  const {
+    isLogin,
+    input,
+    handleSubmit,
+    handleChange,
+    REGISTRATION_TEXT,
+    setIsLogin,
+  } = useActions();
+
   return (
     <Card
-      className="grid grid-cols2 min-h-screen items-center justify-center bg-[url('/bg.jpg')] bg-cover bg-start"
+      className="min-h-screen flex items-center justify-center bg-[url('/bg.jpg')] bg-cover bg-start"
       variant="ghost"
       rounded="none"
     >
@@ -72,11 +113,9 @@ export const Registration = () => {
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className="m-0 md:ml-[80vh]"
+        className="w-full max-w-md mx-auto p-4"
       >
-        <Card
-          className="grid gap-2 text-center w-full max-w-md bg-gray-50 col-span-1"
-        >
+        <Card className="grid gap-2 text-center w-full bg-gray-50">
           <Text variant="subtitle1" className="text-primary">
             {REGISTRATION_TEXT.title}
           </Text>
@@ -139,7 +178,7 @@ export const Registration = () => {
             {REGISTRATION_TEXT.action}
           </Button>
           {!isLogin && (
-            <div className="flex items-center justify-center gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center justify-center gap-2">
               <Button
                 fullWidth
                 variant="outline-success"

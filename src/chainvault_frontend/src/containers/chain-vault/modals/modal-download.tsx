@@ -78,7 +78,7 @@ export const ModalDownload = ({
       </DialogBody>
       <DialogActions>
         <Button
-          disabled={!key}
+          disabled={!key || downloadMutation.isPending}
           variant="primary"
           className="w-full"
           leftIcon="mdi:download"
