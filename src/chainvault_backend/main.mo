@@ -1,94 +1,80 @@
-import TrieMap "mo:base/TrieMap";
 import Text "mo:base/Text";
 import Iter "mo:base/Iter";
-import Option "mo:base/Option";
-
-import Seed "modules/seed";
-import Memory "modules/memory";
+import Nat "mo:base/Nat";
+import Types "./modules/Types";
+import KeyValueStore "./modules/KeyValueStore";
+import FileStore "./modules/FileStore";
 
 actor Storage {
-  // stable is used to store data that should persist across upgrades.
-  stable var stableStore : Memory.StableStore = [];
+  // Data stores
+  stable var stableStore : [(Text, Text)] = [];
+  stable var stableFileInfoStore : [(Types.FileId, Types.FileInfo)] = [];
+  stable var stableChunkStore : [(Text, Text)] = [];
 
-  // store is used to store data that should not persist across upgrades.
-  var heapStore : Memory.HeapStore = TrieMap.TrieMap<Text, Text>(Text.equal, Text.hash);
+  private let kvStore = KeyValueStore.Store();
+  private let fileStore = FileStore.FileStore();
 
-  // The preupgrade function is called before an upgrade
-  // and stores the entries of the heapStore in the stableStore.
+  // Initialize from stable storage
+  if (stableStore.size() > 0 or stableFileInfoStore.size() > 0 or stableChunkStore.size() > 0) {
+    kvStore.fromStable(stableStore);
+    fileStore.fromStable(stableFileInfoStore, stableChunkStore);
+  };
+
+  // Regular key-value methods
+  public func add(key : Text, item : Text) : async () {
+    kvStore.add(key, item);
+  };
+
+  public query func get(key : Text) : async ?Text {
+    kvStore.get(key);
+  };
+
+  public query func getAllKeys() : async [Text] {
+    kvStore.getAllKeys();
+  };
+
+  public func delete(key : Text) : async Bool {
+    kvStore.delete(key);
+  };
+
+  // Chunked file storage methods
+  public func beginFileUpload(fileId : Types.FileId, fileName : Text, totalSize : Nat) : async () {
+    fileStore.beginFileUpload(fileId, fileName, totalSize);
+  };
+
+  public func uploadChunk(fileId : Types.FileId, chunkId : Types.ChunkId, chunk : Text) : async Bool {
+    fileStore.uploadChunk(fileId, chunkId, chunk);
+  };
+
+  public query func getFileInfo(fileId : Types.FileId) : async ?Types.FileInfo {
+    fileStore.getFileInfo(fileId);
+  };
+
+  public query func getFileChunk(fileId : Types.FileId, chunkId : Types.ChunkId) : async ?Text {
+    fileStore.getFileChunk(fileId, chunkId);
+  };
+
+  public func deleteFile(fileId : Types.FileId) : async Bool {
+    fileStore.deleteFile(fileId);
+  };
+
+  public query func listFiles() : async [(Types.FileId, Types.FileInfo)] {
+    fileStore.listFiles();
+  };
+
+  public query func listFileChunks(fileId : Types.FileId) : async [(Types.ChunkId, Text)] {
+    fileStore.listFileChunks(fileId);
+  };
+
+  // System upgrade functions
   system func preupgrade() {
-    // Convert the stable store to a heap store
-    var stableStoreEntries = Memory.convertStableToHeap(stableStore);
-
-    // If a key is already in the stable store, update the value
-    // If the key is not in the stable store, add it to the stable store
-    for ((k, v) in heapStore.entries()) {
-      stableStoreEntries.put(k, v);
-    };
-
-    // Convert back stableStoreEntries to a stable store
-    stableStore := Iter.toArray(stableStoreEntries.entries());
-
-    // Clear the heap store
-    heapStore := TrieMap.TrieMap<Text, Text>(Text.equal, Text.hash);
+    stableStore := Iter.toArray(kvStore.entries());
+    stableFileInfoStore := Iter.toArray(fileStore.fileInfoEntries());
+    stableChunkStore := Iter.toArray(fileStore.chunkEntries());
   };
 
-  public func add(key : Text, item : Text) : async Text {
-    // Check the size of the item
-    if (Memory.isItemSizeExceedLimit(item)) {
-      return "Item size exceeds limit";
-    };
-
-    // Save the item to the heap store
-    heapStore.put(key, item);
-
-    // Check store size
-    // TODO: Save to stable storage. Setup multiple canisters
-    // to store data if the size exceeds the limit.
-    if (Memory.isStoreMax(heapStore)) {
-      return "Store size exceeds limit";
-    };
-
-    return "Item added successfully";
-  };
-
-  public func get(key : Text) : async ?Text {
-    // Check if the key exists in the heap store
-    // If it does, return the value
-    // If it doesn't, check the stable storage
-    // If it exists in the stable storage, return the value
-    // If it doesn't, return null
-    if (heapStore.get(key) != null) {
-      return heapStore.get(key);
-    } else {
-      // Check the stable storage
-      let convertedStableStore = Memory.convertStableToHeap(stableStore);
-
-      if (convertedStableStore.get(key) != null) {
-        let value : ?Text = convertedStableStore.get(key);
-        let stableValue : Text = Option.get(value, ""); // Should never be null
-
-        // Add the key to the heap store
-        // This is to avoid checking the stable storage again
-        // in the next call
-        heapStore.put(key, stableValue);
-
-        // Get the value from the stable storage
-        return value;
-      } else {
-        return null;
-      };
-    };
-  };
-
-  public func getAllInHeap() : async [(Text, Text)] {
-    return Iter.toArray(heapStore.entries());
-  };
-
-  public func getAllInStable() : async [(Text, Text)] {
-    return Iter.toArray(stableStore.vals());
-  };
-
-  public func generateSeed() : async ?Nat {
-    return await Seed.generateSeed();
+  system func postupgrade() {
+    kvStore.fromStable(stableStore);
+    fileStore.fromStable(stableFileInfoStore, stableChunkStore);
   };
 };

@@ -5,12 +5,8 @@
       "type": "motoko"
     },
     "chainvault_frontend": {
-      "dependencies": [
-        "chainvault_backend"
-      ],
-      "source": [
-        "src/chainvault_frontend/dist"
-      ],
+      "dependencies": ["chainvault_backend"],
+      "source": ["src/chainvault_frontend/dist"],
       "type": "assets",
       "workspace": "chainvault_frontend"
     },
@@ -28,8 +24,7 @@
   },
   "defaults": {
     "build": {
-      "args": "",
-      "packtool": ""
+      "args": ""
     }
   },
   "output_env_file": ".env",
