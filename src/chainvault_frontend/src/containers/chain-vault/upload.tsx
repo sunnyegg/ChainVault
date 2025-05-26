@@ -13,18 +13,24 @@ export function Upload() {
   const [file, setFile] = useState<File | null>(null);
   const [key, setKey] = useState<string | null>(null);
   const [downloadKey, setDownloadKey] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+
+  const CHUNK_SIZE = 270000; // ~270KB chunks
 
   useEffect(() => {
-    const generateKey = generateRandomKey(16);
-    setKey(generateKey);
+    const generatedKey = generateRandomKey(16);
+    setKey(generatedKey);
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      setUploadProgress(0);
     }
-    console.log("File selected:", selectedFile);
   };
 
   const handleSubmit = async () => {
@@ -38,36 +44,170 @@ export function Upload() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const fileContent = event.target?.result;
-        if (fileContent) {
-          // Get the base64 string
-          const base64String = (fileContent as string).split(",")[1];
+    setIsUploading(true);
+    setUploadProgress(0);
 
-          const hashedRandomKey = await hash256(key);
+    try {
+      const hashedRandomKey = await hash256(key);
+      const fileId = hashedRandomKey;
+      const totalSize: bigint = BigInt(file.size);
 
-          // Encrypt the file content
-          const encryptedContent = await encrypt(base64String, hashedRandomKey);
+      // Initialize file upload
+      await chainvault_backend.beginFileUpload(fileId, file.name, totalSize);
 
-          // Send the encrypted content to the backend
-          const response = await chainvault_backend.add(
-            hashedRandomKey,
-            encryptedContent
+      // Prepare to read file in chunks
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      let uploadedChunks = 0;
+
+      // Define concurrency level - adjust based on performance testing
+      const CONCURRENT_UPLOADS = 5;
+      // Max retry attempts for failed chunks
+      const MAX_RETRIES = 3;
+
+      // Track failed chunks for retry
+      const failedChunks: number[] = [];
+
+      // Process chunks in batches
+      for (let i = 0; i < totalChunks; i += CONCURRENT_UPLOADS) {
+        // Create a batch of promises for parallel processing
+        const uploadPromises = [];
+        const currentChunks: number[] = [];
+
+        // Generate promises for each chunk in the current batch
+        for (let j = 0; j < CONCURRENT_UPLOADS && i + j < totalChunks; j++) {
+          const chunkId = i + j;
+          currentChunks.push(chunkId);
+          const uploadPromise = processAndUploadChunk(
+            file,
+            fileId,
+            chunkId,
+            CHUNK_SIZE
           );
-          console.log("Response from backend:", response);
-        } else {
-          console.error("Failed to read file content");
+          uploadPromises.push(uploadPromise);
         }
-      } catch (error) {
-        console.error("Error during encryption:", error);
+
+        // Wait for all uploads in this batch to complete
+        const results = await Promise.all(uploadPromises);
+
+        // Track which chunks failed
+        results.forEach((success, index) => {
+          if (!success) {
+            failedChunks.push(currentChunks[index]);
+          }
+        });
+
+        // Update progress
+        uploadedChunks += results.filter((success) => success).length;
+        setUploadProgress(Math.floor((uploadedChunks / totalChunks) * 100));
       }
-    };
-    reader.onerror = (error) => {
-      console.error("Error reading file:", error);
-    };
-    reader.readAsDataURL(file);
+
+      // Handle retries for failed chunks
+      let retryAttempt = 0;
+      while (failedChunks.length > 0 && retryAttempt < MAX_RETRIES) {
+        retryAttempt++;
+
+        // Process failed chunks in batches
+        const chunksToRetry = [...failedChunks];
+        failedChunks.length = 0; // Clear the array for the next iteration
+
+        for (let i = 0; i < chunksToRetry.length; i += CONCURRENT_UPLOADS) {
+          const uploadPromises = [];
+          const currentRetryChunks: number[] = [];
+
+          for (
+            let j = 0;
+            j < CONCURRENT_UPLOADS && i + j < chunksToRetry.length;
+            j++
+          ) {
+            const chunkId = chunksToRetry[i + j];
+            currentRetryChunks.push(chunkId);
+            const uploadPromise = processAndUploadChunk(
+              file,
+              fileId,
+              chunkId,
+              CHUNK_SIZE
+            );
+            uploadPromises.push(uploadPromise);
+          }
+
+          const retryResults = await Promise.all(uploadPromises);
+
+          // Track which chunks failed again
+          retryResults.forEach((success, index) => {
+            if (!success) {
+              failedChunks.push(currentRetryChunks[index]);
+            } else {
+              // Update progress for successful retries
+              uploadedChunks++;
+              setUploadProgress(
+                Math.floor((uploadedChunks / totalChunks) * 100)
+              );
+            }
+          });
+        }
+      }
+
+      // Check if any chunks still failed after all retries
+      if (failedChunks.length > 0) {
+        console.error(
+          `Upload incomplete. ${failedChunks.length} chunks failed after ${MAX_RETRIES} retries.`
+        );
+        throw new Error(
+          `Failed to upload ${failedChunks.length} chunks after multiple attempts.`
+        );
+      }
+    } catch (error) {
+      console.error("Error during upload:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Extract chunk processing and uploading logic to a separate function
+  const processAndUploadChunk = async (
+    file: File,
+    fileId: string,
+    chunkId: number,
+    chunkSize: number
+  ): Promise<boolean> => {
+    try {
+      const start = chunkId * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+
+      // Read chunk as base64
+      const base64Chunk = await readFileChunkAsBase64(chunk);
+
+      // Encrypt each chunk
+      const encryptedChunk = await encrypt(base64Chunk, fileId);
+
+      // Upload chunk
+      const bigIntChunkId = BigInt(chunkId);
+      const success = await chainvault_backend.uploadChunk(
+        fileId,
+        bigIntChunkId,
+        encryptedChunk
+      );
+
+      return success;
+    } catch (error) {
+      console.error(`Error processing chunk ${chunkId}:`, error);
+      return false;
+    }
+  };
+
+  const readFileChunkAsBase64 = (chunk: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        // Extract the base64 part (remove data:*/*;base64, prefix)
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(chunk);
+    });
   };
 
   const handleDownload = async (e: any) => {
@@ -78,38 +218,67 @@ export function Upload() {
       return;
     }
 
+    setIsDownloading(true);
+    setDownloadProgress(0);
+
     try {
       const hashedDownloadKey = await hash256(downloadKey);
+      const fileId = hashedDownloadKey;
 
-      // Fetch the encrypted content from the backend using the provided key
-      const encryptedContent = await chainvault_backend.get(hashedDownloadKey);
-      if (!encryptedContent.length) {
-        console.error("No content found for the provided key");
-        return;
+      // Get file info
+      const fileInfoResponse = await chainvault_backend.getFileInfo(fileId);
+      if (!fileInfoResponse) {
+        throw new Error("File not found");
       }
 
-      // Decrypt the content
-      const decryptedContent = await decrypt(
-        encryptedContent[0],
-        hashedDownloadKey
-      );
+      const fileInfo = fileInfoResponse[0];
+      if (!fileInfo) {
+        throw new Error("File not found");
+      }
 
-      // Decrypted content is the base64 string
-      // Convert base64 string back to binary
-      const bytes = decodeBase64(decryptedContent);
-      const blob = new Blob([bytes], { type: "application/octet-stream" });
+      const totalChunks = fileInfo.totalChunks;
+
+      // Create array to hold all chunks
+      const chunks: Uint8Array[] = [];
+
+      // Download each chunk
+      for (let chunkId = 0; chunkId < totalChunks; chunkId++) {
+        const bigIntChunkId = BigInt(chunkId);
+        const chunkResponse = await chainvault_backend.getFileChunk(
+          fileId,
+          bigIntChunkId
+        );
+        if (!chunkResponse[0]) {
+          throw new Error(`Chunk ${chunkId} not found`);
+        }
+
+        // Decrypt chunk
+        const decryptedChunk = await decrypt(chunkResponse[0], fileId);
+
+        // Convert base64 to binary
+        const binaryChunk = decodeBase64(decryptedChunk);
+        chunks.push(binaryChunk);
+
+        const intTotalChunks = Number(totalChunks);
+        setDownloadProgress(Math.floor(((chunkId + 1) / intTotalChunks) * 100));
+      }
+
+      // Combine all chunks and create a download link
+      const blob = new Blob(chunks, { type: "application/octet-stream" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "downloaded_file"; // You can set a default filename here
+      a.download = fileInfo.name || "downloaded_file";
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-      }, 0); // Clean up the URL object
+      }, 0);
     } catch (err) {
       console.error("Error during download:", err);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -139,11 +308,27 @@ export function Upload() {
           </Button>
         </div>
 
-        <Card className="flex gap-2 items-center">
-          <Input type="file" variant="ghost" onChange={handleFileChange} />
-          <Button type="submit" onClick={handleSubmit} variant="primary">
-            Save
-          </Button>
+        <Card className="flex flex-col gap-2">
+          <div className="flex gap-2 items-center">
+            <Input type="file" variant="ghost" onChange={handleFileChange} />
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              variant="primary"
+              disabled={isUploading || !file}
+            >
+              {isUploading ? "Uploading..." : "Save"}
+            </Button>
+          </div>
+
+          {isUploading && (
+            <div className="w-full mt-2">
+              {/* <Progress value={uploadProgress} max={100} /> */}
+              <Text variant="caption" className="text-right">
+                {uploadProgress}%
+              </Text>
+            </div>
+          )}
         </Card>
       </Card>
 
@@ -158,7 +343,21 @@ export function Upload() {
           onChange={(e) => setDownloadKey(e.target.value)}
           fullWidth
         />
-        <Button onClick={handleDownload}>Download</Button>
+        <Button
+          onClick={handleDownload}
+          disabled={isDownloading || !downloadKey}
+        >
+          {isDownloading ? "Downloading..." : "Download"}
+        </Button>
+
+        {isDownloading && (
+          <div className="w-full mt-2">
+            {/* <Progress value={downloadProgress} max={100} /> */}
+            <Text variant="caption" className="text-right">
+              {downloadProgress}%
+            </Text>
+          </div>
+        )}
       </Card>
     </Card>
   );
