@@ -16,37 +16,39 @@ interface DummyFile {
   size: string;
 }
 
-// export const DUMMY_FILES: DummyFile[] = [];
+export const DUMMY_FILES: DummyFile[] = [];
 
-export const DUMMY_FILES = [
-  {
-    name: "Tesla model S",
-    type: "pdf",
-    size: "100kb",
-  },
-  {
-    name: "E-Ticket Tixia",
-    type: "xls",
-    size: "100kb",
-  },
-  {
-    name: "Invoice Tixia",
-    type: "doc",
-    size: "100kb",
-  },
-  {
-    name: "File power point",
-    type: "ppt",
-    size: "100kb",
-  },
-  {
-    name: "File zip",
-    type: "zip",
-    size: "100kb",
-  },
-  {
-    name: "File rar",
-    type: "rar",
-    size: "100kb",
-  },
-];
+// export const DUMMY_FILES = [
+//   {
+//     name: "Tesla model S",
+//     type: "pdf",
+//     size: "100kb",
+//   },
+//   {
+//     name: "E-Ticket Tixia",
+//     type: "xls",
+//     size: "100kb",
+//   },
+//   {
+//     name: "Invoice Tixia",
+//     type: "doc",
+//     size: "100kb",
+//   },
+//   {
+//     name: "File power point",
+//     type: "ppt",
+//     size: "100kb",
+//   },
+//   {
+//     name: "File zip",
+//     type: "zip",
+//     size: "100kb",
+//   },
+//   {
+//     name: "File rar",
+//     type: "rar",
+//     size: "100kb",
+//   },
+// ];
+
+

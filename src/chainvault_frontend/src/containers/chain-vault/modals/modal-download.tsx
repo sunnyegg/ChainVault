@@ -18,6 +18,7 @@ interface IModalDownloadProps {
   item: any;
   handleDownload: (key: string, e: React.FormEvent) => void;
   downloadMutation: UseMutationResult<any, Error, any>;
+  downloadProgress: number;
 }
 
 export const ModalDownload = ({
@@ -26,6 +27,7 @@ export const ModalDownload = ({
   item,
   handleDownload,
   downloadMutation,
+  downloadProgress,
 }: IModalDownloadProps) => {
   const [key, setKey] = useState("");
   const { showToast } = useToast();
@@ -85,7 +87,7 @@ export const ModalDownload = ({
           isLoading={downloadMutation.isPending}
           onClick={(e) => handleDownload(key, e)}
         >
-          Download
+          {downloadMutation.isPending ? downloadProgress + "%" : "Download"}
         </Button>
         <Button
           disabled={!key}

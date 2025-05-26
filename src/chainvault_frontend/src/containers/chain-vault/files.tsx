@@ -23,6 +23,8 @@ export const Files = () => {
     uploadMutation,
     downloadMutation,
     uploadKey,
+    uploadProgress,
+    downloadProgress,
   } = useFileHandler();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,6 +43,7 @@ export const Files = () => {
           handleFileChange={handleFileChange}
           uploadMutation={uploadMutation}
           fileInputRef={fileInputRef}
+          uploadProgress={uploadProgress}
         />
       </motion.div>
       <motion.div
@@ -111,6 +114,7 @@ export const Files = () => {
         </Text>
       </motion.div>
       <ModalDownload
+        downloadProgress={downloadProgress}
         isOpen={modalOpen === "action"}
         onClose={closeModal}
         item={selectedItem}

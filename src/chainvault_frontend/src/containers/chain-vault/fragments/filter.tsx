@@ -8,6 +8,7 @@ interface IFilterProps {
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   uploadMutation: UseMutationResult<any, Error, any>;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  uploadProgress: number;
 }
 
 export const Filter = ({
@@ -17,6 +18,7 @@ export const Filter = ({
   handleFileChange,
   uploadMutation,
   fileInputRef,
+  uploadProgress,
 }: IFilterProps) => {
   return (
     <div className="flex flex-col md:flex-row items-center gap-4 justify-between w-full">
@@ -71,7 +73,7 @@ export const Filter = ({
           onClick={() => fileInputRef.current?.click()}
           className="truncate"
         >
-          Add New File
+          {uploadMutation.isPending ? "Uploading... " + uploadProgress + "%" : "Add New File"}
         </Button>
         <Button
           variant="primary"

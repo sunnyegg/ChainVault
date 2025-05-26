@@ -15,7 +15,10 @@ export function ChainVault() {
           expanded ? "md:ml-56" : "md:ml-16"
         }`}
       >
-        <Card variant="ghost" className="flex flex-col gap-4 mx-auto w-full max-w-7xl">
+        <Card
+          variant="ghost"
+          className="flex flex-col gap-4 mx-auto w-full max-w-7xl"
+        >
           <Files />
         </Card>
       </div>
