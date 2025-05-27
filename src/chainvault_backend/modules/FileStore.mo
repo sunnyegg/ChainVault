@@ -3,6 +3,7 @@ import Iter "mo:base/Iter";
 import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
 import Types "./Types";
+import Time "mo:base/Time";
 
 module {
   // Constants
@@ -12,12 +13,15 @@ module {
     private var fileInfoStore = HashMap.HashMap<Types.FileId, Types.FileInfo>(0, Text.equal, Text.hash);
     private var chunkStore = HashMap.HashMap<Text, Text>(0, Text.equal, Text.hash);
 
-    public func beginFileUpload(fileId : Types.FileId, fileName : Text, totalSize : Nat) {
+    public func beginFileUpload(fileId : Types.FileId, fileName : Text, totalSize : Nat, expirationTime : ?Time.Time) {
+      let now = Time.now();
       let fileInfo : Types.FileInfo = {
         name = fileName;
         totalChunks = calculateTotalChunks(totalSize);
         currentChunks = 0;
         totalSize = totalSize;
+        creationTime = now;
+        expirationTime = expirationTime;
       };
       fileInfoStore.put(fileId, fileInfo);
     };
@@ -42,6 +46,8 @@ module {
             totalChunks = fileInfo.totalChunks;
             currentChunks = fileInfo.currentChunks + 1;
             totalSize = fileInfo.totalSize;
+            creationTime = fileInfo.creationTime;
+            expirationTime = fileInfo.expirationTime;
           };
           fileInfoStore.put(fileId, updatedInfo);
 
@@ -130,6 +136,26 @@ module {
     public func clear() : () {
       fileInfoStore := HashMap.HashMap<Types.FileId, Types.FileInfo>(0, Text.equal, Text.hash);
       chunkStore := HashMap.HashMap<Text, Text>(0, Text.equal, Text.hash);
+    };
+
+    // Check if a file is expired
+    public func isExpired(fileInfo : Types.FileInfo) : Bool {
+      switch (fileInfo.expirationTime) {
+        case (null) { false }; // No expiration set
+        case (?expTime) { expTime < Time.now() };
+      };
+    };
+
+    // Get all expired files
+    public func getExpiredFiles() : [(Types.FileId, Types.FileInfo)] {
+      Iter.toArray(
+        Iter.filter(
+          fileInfoStore.entries(),
+          func((_, info) : (Types.FileId, Types.FileInfo)) : Bool {
+            isExpired(info);
+          },
+        )
+      );
     };
   };
 };

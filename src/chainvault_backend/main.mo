@@ -6,6 +6,7 @@ import KeyValueStore "./modules/KeyValueStore";
 import FileStore "./modules/FileStore";
 import Prim "mo:prim";
 import Array "mo:base/Array";
+import Time "mo:base/Time";
 
 actor Storage {
   // Data stores
@@ -19,6 +20,9 @@ actor Storage {
   // Heap memory thresholds (in bytes)
   private let heapMaxSize = 4_000_000_000; // 4GB
   private let heapThreshold = heapMaxSize / 2; // 50% threshold
+
+  // Default: 1 day in seconds
+  private let defaultExpirationSeconds : Nat = 1 * 24 * 60 * 60;
 
   // Initialize from stable storage
   if (stableStore.size() > 0 or stableFileInfoStore.size() > 0 or stableChunkStore.size() > 0) {
@@ -66,8 +70,14 @@ actor Storage {
   };
 
   // Chunked file storage methods
-  public func beginFileUpload(fileId : Types.FileId, fileName : Text, totalSize : Nat) : async () {
-    fileStore.beginFileUpload(fileId, fileName, totalSize);
+  public func beginFileUpload(fileId : Types.FileId, fileName : Text, totalSize : Nat, expirationSeconds : ?Nat) : async () {
+    let expirationTime = switch (expirationSeconds) {
+      case (null) {
+        ?((Time.now()) + (defaultExpirationSeconds * 1_000_000_000));
+      };
+      case (?seconds) { ?((Time.now()) + (seconds * 1_000_000_000)) };
+    };
+    fileStore.beginFileUpload(fileId, fileName, totalSize, expirationTime);
     checkAndMoveToStable();
   };
 
@@ -78,7 +88,19 @@ actor Storage {
   };
 
   public query func getFileInfo(fileId : Types.FileId) : async ?Types.FileInfo {
-    fileStore.getFileInfo(fileId);
+    switch (fileStore.getFileInfo(fileId)) {
+      case (null) { null };
+      case (?fileInfo) {
+        // Check if the file is expired
+        if (fileStore.isExpired(fileInfo)) {
+          // File has expired, return null as if it doesn't exist
+          null;
+        } else {
+          // File exists and hasn't expired
+          ?fileInfo;
+        };
+      };
+    };
   };
 
   public query func getFileChunk(fileId : Types.FileId, chunkId : Types.ChunkId) : async ?Text {
@@ -115,6 +137,45 @@ actor Storage {
 
   public query func listFileChunks(fileId : Types.FileId) : async [(Types.ChunkId, Text)] {
     fileStore.listFileChunks(fileId);
+  };
+
+  // Function to clean up expired files
+  private func cleanupExpiredFiles() : async Nat {
+    let expiredFiles = fileStore.getExpiredFiles();
+    var deletedCount = 0;
+
+    for ((fileId, _) in expiredFiles.vals()) {
+      let deleted = fileStore.deleteFile(fileId);
+      if (deleted) {
+        // Also update stable storage
+        stableFileInfoStore := Array.filter<(Types.FileId, Types.FileInfo)>(
+          stableFileInfoStore,
+          func((id, _)) { id != fileId },
+        );
+
+        stableChunkStore := Array.filter<(Text, Text)>(
+          stableChunkStore,
+          func((chunkKey, _)) {
+            not Text.startsWith(chunkKey, #text(fileId # "_"));
+          },
+        );
+
+        deletedCount += 1;
+      };
+    };
+
+    checkAndMoveToStable();
+    deletedCount;
+  };
+
+  // Timer for periodic cleanup
+  private var nextCleanupTime = Time.now() + (24 * 60 * 60 * 1_000_000_000); // 24 hours from now
+
+  system func heartbeat() : async () {
+    if (Time.now() > nextCleanupTime) {
+      ignore await cleanupExpiredFiles();
+      nextCleanupTime := Time.now() + (24 * 60 * 60 * 1_000_000_000); // Schedule next cleanup
+    };
   };
 
   // System upgrade functions

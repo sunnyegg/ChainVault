@@ -88,8 +88,11 @@ export const useFileHandler = () => {
       const hashedRandomKey = await hash256(key);
       const fileId = hashedRandomKey;
       const totalSize: bigint = BigInt(file.size);
+      const expirationSeconds = 60 * 60 * 24 * 1; // 1 day
 
-      await chainvault_backend.beginFileUpload(fileId, file.name, totalSize);
+      await chainvault_backend.beginFileUpload(fileId, file.name, totalSize, [
+        BigInt(expirationSeconds),
+      ]);
 
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       let uploadedChunks = 0;
