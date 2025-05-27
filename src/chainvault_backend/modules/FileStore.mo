@@ -126,5 +126,10 @@ module {
         Text.hash,
       );
     };
+
+    public func clear() : () {
+      fileInfoStore := HashMap.HashMap<Types.FileId, Types.FileInfo>(0, Text.equal, Text.hash);
+      chunkStore := HashMap.HashMap<Text, Text>(0, Text.equal, Text.hash);
+    };
   };
 };

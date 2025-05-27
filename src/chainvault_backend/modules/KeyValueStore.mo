@@ -40,5 +40,9 @@ module {
         Text.hash,
       );
     };
+
+    public func clear() : () {
+      store := HashMap.HashMap<Text, Text>(0, Text.equal, Text.hash);
+    };
   };
 };
