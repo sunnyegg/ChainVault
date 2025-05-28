@@ -16,7 +16,7 @@
     "@dfinity/principal": "^2.1.3",
     "@radix-ui/react-slot": "^1.2.2",
     "@tanstack/react-query": "^5.76.1",
-    "@tixia/design-system": "github:TixiaOTA/design-system",
+    "@tixia/design-system": "github:TixiaOTA/design-system#v0.1.1",
     "class-variance-authority": "^0.7.1",
     "crypto-aes-gcm": "^2.0.3",
     "framer-motion": "^12.12.1",

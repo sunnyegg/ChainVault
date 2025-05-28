@@ -319,6 +319,7 @@ export const useFileHandler = () => {
       // Error handling is done in mutation callbacks
     } finally {
       // setIsDownloading(false);
+      setModalOpen("");
     }
   };
 

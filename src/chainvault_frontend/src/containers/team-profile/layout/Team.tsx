@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 // import Image from "next/image";
 export const Team = () => {
   const members = [
-    { name: "Michael Jordan", role: "NBA player" },
-    { name: "Adila", role: "CTO" },
-    { name: "Firnaz", role: "Pro_Gamer" },
-    { name: "Boss Yoga", role: "CEO" },
+    { name: "Jordan", role: "Backend Developer" },
+    { name: "Adila", role: "Backend Developer" },
+    { name: "Firnaz", role: "Frontend Developer" },
+    { name: "Yoga", role: "Backend Developer" },
   ];
 
   return (
