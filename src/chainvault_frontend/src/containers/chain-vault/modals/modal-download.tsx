@@ -10,7 +10,7 @@ import {
   Text,
   useToast,
 } from "@tixia/design-system";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface IModalDownloadProps {
   isOpen: boolean;
@@ -32,6 +32,35 @@ export const ModalDownload = ({
   const [key, setKey] = useState("");
   const { showToast } = useToast();
 
+  // Use stored key if available
+  useEffect(() => {
+    if (item?.key_) {
+      setKey(item.key_);
+    }
+
+    // Automatically delete and close modal if file is expired
+    if (isOpen && item?.expired === true && item?.fileId) {
+      // Dispatch event to delete file
+      const customEvent = new CustomEvent("delete-file", {
+        detail: { fileId: item.fileId },
+      });
+      document.dispatchEvent(customEvent);
+
+      // Close modal
+      onClose();
+
+      // Show toast
+      showToast({
+        title: "File Removed",
+        description: "Expired file has been deleted from your vault",
+        variant: "info",
+      });
+    }
+  }, [item, isOpen]);
+
+  // Check if file is expired
+  const isExpired = item?.expired === true;
+
   const handleClose = () => {
     setKey("");
     onClose();
@@ -43,6 +72,17 @@ export const ModalDownload = ({
         <DialogTitle>{item?.name || "File"}</DialogTitle>
       </DialogHeader>
       <DialogBody className="overflow-y-auto max-h-[80vh]">
+        {isExpired && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <Text variant="subtitle2" className="text-red-600 font-medium">
+              Warning: This file has expired
+            </Text>
+            <Text variant="body2" className="text-red-500">
+              Files are only available for 60 seconds after upload. This file is
+              no longer accessible on the server.
+            </Text>
+          </div>
+        )}
         <Text variant="subtitle1">
           Please enter your key to download the file.
         </Text>
@@ -80,22 +120,44 @@ export const ModalDownload = ({
       </DialogBody>
       <DialogActions>
         <Button
-          disabled={!key || downloadMutation.isPending}
+          disabled={!key || downloadMutation.isPending || isExpired}
           variant="primary"
           className="w-full"
           leftIcon="mdi:download"
           isLoading={downloadMutation.isPending}
           onClick={(e) => handleDownload(key, e)}
+          title={
+            isExpired ? "This file has expired and cannot be downloaded" : ""
+          }
         >
-          {downloadMutation.isPending ? downloadProgress + "%" : "Download"}
+          {downloadMutation.isPending
+            ? downloadProgress + "%"
+            : isExpired
+            ? "File Expired"
+            : "Download"}
         </Button>
         <Button
           disabled={!key}
           variant="outline-danger"
           className="w-full"
           leftIcon="mdi:delete"
-          // isLoading={downloadMutation.isPending}
-          // onClick={(e) => handleDownload(key, e)}
+          onClick={() => {
+            if (item?.fileId) {
+              // We need to pass this to parent component to handle deletion
+              const customEvent = new CustomEvent("delete-file", {
+                detail: { fileId: item.fileId },
+              });
+              document.dispatchEvent(customEvent);
+              handleClose();
+
+              // Show deleted toast (parent will handle actual deletion)
+              showToast({
+                title: "File Deleted",
+                description: "File has been removed from your vault",
+                variant: "info",
+              });
+            }
+          }}
         >
           Delete
         </Button>

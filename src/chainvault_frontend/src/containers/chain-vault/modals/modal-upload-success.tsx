@@ -32,6 +32,18 @@ export const ModalUploadSuccess = ({
           You have successfully uploaded your file!
         </Text>
         <Notification
+          icon="mingcute:information-fill"
+          title="Information"
+          variant="info"
+          className="my-3"
+        >
+          <li>
+            Your file information has been saved to your local storage and will
+            be visible in your files list. You can access it at any time from
+            this device.
+          </li>
+        </Notification>
+        <Notification
           icon="mingcute:warning-fill"
           title="Warning"
           variant="warning"

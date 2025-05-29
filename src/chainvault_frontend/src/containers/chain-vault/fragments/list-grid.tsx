@@ -11,9 +11,21 @@ export const ListGrid = (
   props: IFileProps & {
     setSelectedItem: (item: any) => void;
     openModal: (open: string) => void;
+    uploadDate?: string;
+    expired?: boolean;
+    remainingTime?: string;
   }
 ) => {
-  const { name, type, size, setSelectedItem, openModal } = props;
+  const {
+    name,
+    type,
+    size,
+    setSelectedItem,
+    openModal,
+    uploadDate,
+    expired,
+    remainingTime,
+  } = props;
   const icon = TYPE_ICONS[type as keyof typeof TYPE_ICONS];
   return (
     <Card
@@ -23,17 +35,37 @@ export const ListGrid = (
         openModal("action");
       }}
     >
-      <Icon 
-        icon={icon} 
-        size="40" 
-        className="rounded-md p-1.5 md:p-2 bg-primary-50 flex-shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center" 
+      <Icon
+        icon={icon}
+        size="40"
+        className="rounded-md p-1.5 md:p-2 bg-primary-50 flex-shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center"
       />
       <div className="flex flex-col gap-1 md:gap-2 items-start min-w-0 flex-1">
         <div className="flex flex-col gap-0.5 md:gap-1 w-full">
-          <Text className="truncate text-primary text-sm md:text-base" variant="subtitle1">
+          <Text
+            className="truncate text-primary text-sm md:text-base"
+            variant="subtitle1"
+          >
             {name}
           </Text>
-          <Text variant="caption" className="text-xs md:text-sm">Size: {size}</Text>
+          {uploadDate && (
+            <Text variant="caption" className="text-xs md:text-sm">
+              Uploaded: {uploadDate}
+            </Text>
+          )}
+          <Text variant="caption" className="text-xs md:text-sm">
+            Size: {size}
+          </Text>
+          {remainingTime && (
+            <Text
+              variant="caption"
+              className={`text-xs md:text-sm font-medium ${
+                expired ? "text-red-500" : "text-amber-600"
+              }`}
+            >
+              {expired ? "Expired" : `Expires in: ${remainingTime}`}
+            </Text>
+          )}
         </div>
       </div>
     </Card>

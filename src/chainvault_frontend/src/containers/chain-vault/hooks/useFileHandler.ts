@@ -10,6 +10,15 @@ import {
   generateRandomKey,
 } from "../../../lib/crypto";
 
+// Interface for stored file information
+interface StoredFileInfo {
+  fileId: string;
+  fileName: string;
+  fileSize: number;
+  uploadKey: string;
+  uploadDate: number; // timestamp
+}
+
 export const useFileHandler = () => {
   const [file, setFile] = useState<File | null>(null);
   const [key, setKey] = useState<string | null>(null);
@@ -17,9 +26,10 @@ export const useFileHandler = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [storedFiles, setStoredFiles] = useState<StoredFileInfo[]>([]);
 
   const [modalOpen, setModalOpen] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
   const [view, setView] = useState("grid");
 
   const { showToast } = useToast();
@@ -38,6 +48,21 @@ export const useFileHandler = () => {
   useEffect(() => {
     const generateKey = generateRandomKey(16);
     setKey(generateKey);
+
+    // Load stored files from localStorage when component mounts
+    const loadStoredFiles = () => {
+      const storedFilesData = localStorage.getItem("chainvault-files");
+      if (storedFilesData) {
+        try {
+          const parsedFiles = JSON.parse(storedFilesData);
+          setStoredFiles(parsedFiles);
+        } catch (error) {
+          console.error("Error parsing stored files:", error);
+        }
+      }
+    };
+
+    loadStoredFiles();
   }, []);
 
   const readFileChunkAsBase64 = (chunk: Blob): Promise<string> => {
@@ -75,6 +100,55 @@ export const useFileHandler = () => {
       );
     } catch (error) {
       console.error(`Error processing chunk ${chunkId}:`, error);
+      return false;
+    }
+  };
+
+  // Function to save file info to localStorage
+  const saveFileToLocalStorage = (
+    fileId: string,
+    fileName: string,
+    uploadKey: string,
+    fileSize: number
+  ) => {
+    const newFileInfo: StoredFileInfo = {
+      fileId,
+      fileName,
+      fileSize,
+      uploadKey,
+      uploadDate: Date.now(),
+    };
+
+    const updatedFiles = [...storedFiles, newFileInfo];
+    setStoredFiles(updatedFiles);
+
+    try {
+      localStorage.setItem("chainvault-files", JSON.stringify(updatedFiles));
+    } catch (error) {
+      console.error("Error saving file to localStorage:", error);
+      showToast({
+        title: "Warning",
+        description: "Could not save file info to local storage",
+        variant: "warning",
+      });
+    }
+  };
+
+  // Function to remove a file from localStorage
+  const removeFileFromLocalStorage = (fileId: string) => {
+    const updatedFiles = storedFiles.filter((file) => file.fileId !== fileId);
+    setStoredFiles(updatedFiles);
+
+    try {
+      localStorage.setItem("chainvault-files", JSON.stringify(updatedFiles));
+      return true;
+    } catch (error) {
+      console.error("Error removing file from localStorage:", error);
+      showToast({
+        title: "Warning",
+        description: "Could not remove file info from local storage",
+        variant: "warning",
+      });
       return false;
     }
   };
@@ -175,12 +249,20 @@ export const useFileHandler = () => {
         );
       }
 
-      return { fileId, fileName: file.name };
+      return { fileId, fileName: file.name, key };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Generate a new key for the next upload
-      const generateKey = generateRandomKey(16);
-      setKey(generateKey);
+      const newKey = generateRandomKey(16);
+      setKey(newKey);
+
+      // Save file info to localStorage
+      saveFileToLocalStorage(
+        result.fileId,
+        result.fileName,
+        result.key,
+        file?.size || 0
+      );
 
       showToast({
         title: "Success",
@@ -348,5 +430,8 @@ export const useFileHandler = () => {
     fileInputRef,
     uploadProgress,
     downloadProgress,
+    storedFiles,
+    saveFileToLocalStorage,
+    removeFileFromLocalStorage,
   };
 };
