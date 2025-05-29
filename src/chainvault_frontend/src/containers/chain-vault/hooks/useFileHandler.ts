@@ -88,7 +88,7 @@ export const useFileHandler = () => {
       const hashedRandomKey = await hash256(key);
       const fileId = hashedRandomKey;
       const totalSize: bigint = BigInt(file.size);
-      const expirationSeconds = 60 * 60 * 24 * 1; // 1 day
+      const expirationSeconds = 60; // 1 minute
 
       await chainvault_backend.beginFileUpload(fileId, file.name, totalSize, [
         BigInt(expirationSeconds),
@@ -178,6 +178,10 @@ export const useFileHandler = () => {
       return { fileId, fileName: file.name };
     },
     onSuccess: () => {
+      // Generate a new key for the next upload
+      const generateKey = generateRandomKey(16);
+      setKey(generateKey);
+
       showToast({
         title: "Success",
         variant: "success",

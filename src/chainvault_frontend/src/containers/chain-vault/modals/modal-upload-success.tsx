@@ -6,6 +6,7 @@ import {
   DialogTitle,
   Text,
   Notification,
+  useToast,
 } from "@tixia/design-system";
 
 interface IModalUploadSuccessProps {
@@ -19,6 +20,8 @@ export const ModalUploadSuccess = ({
   onClose,
   uploadKey,
 }: IModalUploadSuccessProps) => {
+  const { showToast } = useToast();
+
   return (
     <Dialog isOpen={isOpen} onClose={onClose} size="xl">
       <DialogHeader onClose={onClose}>
@@ -28,6 +31,17 @@ export const ModalUploadSuccess = ({
         <Text variant="subtitle2" className="mt-2">
           You have successfully uploaded your file!
         </Text>
+        <Notification
+          icon="mingcute:warning-fill"
+          title="Warning"
+          variant="warning"
+          className="my-3"
+        >
+          <li>
+            For Demo Purposes, your files will only last for 1 minute to
+            demonstrate file expiration.
+          </li>
+        </Notification>
         <Notification
           icon="mingcute:warning-fill"
           title="Warning"
@@ -59,6 +73,11 @@ export const ModalUploadSuccess = ({
             onClick={() => {
               if (uploadKey) {
                 navigator.clipboard.writeText(uploadKey);
+                showToast({
+                  title: "Success",
+                  variant: "success",
+                  description: "Key copied to clipboard!",
+                });
               }
             }}
             variant="outline-primary"
