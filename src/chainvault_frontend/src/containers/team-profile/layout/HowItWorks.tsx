@@ -19,9 +19,8 @@ export const HowItWorks = () => {
         </p>
         <ol className="space-y-8 text-left">
           {[
-            "Connect your crypto wallet or authenticate via email using Internet Identity.",
+            "Connect your crypto wallet using Internet Identity.",
             "Upload any file, note, or document through our secure Web3 interface.",
-            "Choose to generate an AI summary for your content (e.g. notes, articles).",
             "Your data is stored and verifiable on the Internet Computer — forever.",
             "You can retrieve, share, or manage your content anytime with full transparency.",
           ].map((step, idx) => (

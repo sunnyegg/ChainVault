@@ -17,17 +17,12 @@ export const Impact = () => {
           digital freedom. We’re reshaping how individuals and teams control
           their data, forever.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
             {
               label: "Fully On-Chain",
               value: "100%",
               desc: "No third-party cloud or IPFS dependency. True blockchain persistence.",
-            },
-            {
-              label: "AI Summaries",
-              value: "Built-in",
-              desc: "Integrated generative AI turns unstructured data into useful insights.",
             },
             {
               label: "Data Ownership",

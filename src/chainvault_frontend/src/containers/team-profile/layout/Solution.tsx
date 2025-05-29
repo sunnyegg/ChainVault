@@ -13,20 +13,15 @@ export const Solution = () => {
           Our Solution
         </h2>
         <p className="text-lg text-[#EAECEF] mb-10">
-          ChainVault provides a trustless, on-chain file storage system with
-          optional AI capabilities. Built on the Internet Computer, it delivers
-          high-speed decentralized storage while offering intelligent content
-          understanding.
+          ChainVault provides a trustless, on-chain file storage system. Built
+          on the Internet Computer, it delivers high-speed decentralized storage
+          while offering intelligent content understanding.
         </p>
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
           {[
             {
               title: "On-Chain File Storage",
               desc: "Data is stored and served directly from smart contracts — no gateways, no central servers.",
-            },
-            {
-              title: "AI Summarization",
-              desc: "Built-in AI condenses long notes into clear, actionable summaries in seconds.",
             },
             {
               title: "Immutable & Verifiable",
@@ -34,7 +29,7 @@ export const Solution = () => {
             },
             {
               title: "Seamless Access",
-              desc: "Log in via wallet or email. Upload and access your content with a simple interface.",
+              desc: "Log in via wallet. Upload and access your content with a simple interface.",
             },
           ].map(({ title, desc }, index) => (
             <motion.div

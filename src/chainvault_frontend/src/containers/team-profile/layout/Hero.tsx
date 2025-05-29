@@ -25,7 +25,7 @@ export const Hero = () => {
         >
           <b className="text-[#FCD535]">ChainVault</b> is a blockchain-powered
           storage system built on the Internet Computer — offering secure,
-          decentralized file storage with optional AI-generated summaries.
+          decentralized file storage.
         </motion.p>
 
         <motion.div
@@ -34,7 +34,7 @@ export const Hero = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <Button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/app")}
             leftIcon="fxemoji:rocket"
             className="bg-[#FCD535] text-black font-semibold px-6 py-3 hover:bg-yellow-400 transition-all rounded-full"
           >

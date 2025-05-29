@@ -4,15 +4,24 @@ import { Link } from "react-router-dom";
 
 const SCHEMA = [
   { label: "Vault", icon: "streamline:safe-vault-solid", href: "/app" },
-  { label: "Testing", icon: "solar:bug-bold-duotone", href: "/testing" },
+  // { label: "Testing", icon: "solar:bug-bold-duotone", href: "/testing" },
 ];
 
-export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpanded: (expanded: boolean) => void }) => {
+export const Navbar = ({
+  expanded,
+  setExpanded,
+}: {
+  expanded: boolean;
+  setExpanded: (expanded: boolean) => void;
+}) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
     const setNavbarHeight = () => {
-      document.documentElement.style.setProperty('--navbar-height', `${window.innerHeight}px`);
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${window.innerHeight}px`
+      );
     };
 
     const handleResize = () => {
@@ -21,8 +30,8 @@ export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpand
     };
 
     setNavbarHeight();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
@@ -38,15 +47,16 @@ export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpand
       )}
       <nav
         className={`fixed top-0 left-0 min-h-screen z-30 bg-slate-700 shadow-lg border-r border-slate-800 transition-all duration-200 flex flex-col items-center group
-          ${isMobile 
-            ? expanded 
-              ? "w-56 translate-x-0" 
-              : "-translate-x-full w-56"
-            : expanded 
-              ? "w-56" 
+          ${
+            isMobile
+              ? expanded
+                ? "w-56 translate-x-0"
+                : "-translate-x-full w-56"
+              : expanded
+              ? "w-56"
               : "w-16 hover:w-56"
           }`}
-        style={{ height: 'var(--navbar-height)' }}
+        style={{ height: "var(--navbar-height)" }}
         onMouseEnter={() => !isMobile && setExpanded(true)}
         onMouseLeave={() => !isMobile && setExpanded(false)}
       >
@@ -70,9 +80,7 @@ export const Navbar = ({ expanded, setExpanded }: { expanded: boolean, setExpand
                 </span>
                 <span
                   className={`ml-2 transition-all duration-200 ${
-                    expanded
-                      ? "opacity-100 w-auto"
-                      : "hidden"
+                    expanded ? "opacity-100 w-auto" : "hidden"
                   }`}
                 >
                   {item.label}

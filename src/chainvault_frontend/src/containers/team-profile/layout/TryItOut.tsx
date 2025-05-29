@@ -23,7 +23,7 @@ export const TryItOut = () => {
         <Button
           leftIcon="fxemoji:rocket"
           className="bg-black text-[#FCD535] font-semibold px-6 py-3 rounded-full hover:bg-[#181A20] transition-all"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/app")}
         >
           Launch App
         </Button>
